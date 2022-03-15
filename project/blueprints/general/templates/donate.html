@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+
+{% block title %} Donate {% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/donate.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container h-100">
+    <div class="row h-100">
+        TODO: donate page
+        <div class="col-6 text-theme-lightblue my-auto">
+            <h1 class="display-1">Donate.</h1>
+            <p class="lead">
+                For 50 HKD, you can treat 1 child's strabismus.
+                <br>
+                For 100 HKD, you will provide glasses for 15 children.
+            </p>
+            <a href="https://www.orbis.org/" target="_blank" class="btn btn-outline-theme-lightblue btn-lg">
+                Donate now
+            </a>
+            <div class="py-3">
+                <p><small>
+                    All proceeds go to ORBIS.
+                    <br>
+                    Thank you for your generous support to Orbis and their sight-restoring mission.
+                </small></p>
+            </div>
+        </div>
+    </div>
+</div>
+    
+{% endblock %}

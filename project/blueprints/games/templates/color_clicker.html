@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block title %} Color Clicker {% endblock %}
+
+{% block head %}
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/p5.css') }}">
+
+<!-- passed to js through jQuery -->
+<!-- <meta id="user_data" data-user="{{ username }}"> -->
+
+<script src="https://cdn.jsdelivr.net/npm/p5@1.4.0/lib/p5.js"></script>
+
+<script src="{{ url_for('static', filename='games/ColorClicker/p5.clickable.js') }}"></script>
+<script src="{{ url_for('static', filename='games/ColorClicker/colorClicker.js') }}"></script>
+
+{% endblock %}
