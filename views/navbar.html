@@ -1,0 +1,31 @@
+<nav class="navbar navbar-expand navbar-light bg-light">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="/">MoodTracker</a>
+
+    <div class="collapse navbar-collapse" id="navbarToggler">
+
+      <ul class="navbar-nav me-auto">
+
+        {% if loggedin %}
+        <li class="nav-item"><a class="nav-link" href="/add_friend">Add Friend</a></li>
+        {% endif %}
+
+      </ul>
+
+      <ul class="navbar-nav">
+        
+        {% if loggedin %}
+        <li class="nav-item"><a class="nav-link" href="/select_mood">Change mood</a></li>
+        <li class="nav-item"><a class="nav-link" href="/profile">Profile</a></li>
+        <li class="nav-item"><a class="nav-link" href="/logout">Logout</a></li>
+        
+        {% else %}
+        <li class="nav-item"><a class="nav-link" href="/login">Login</a></li>
+        <li class="nav-item"><a class="nav-link" href="/signup">Sign Up</a></li>
+        
+        {% endif %}
+
+      </ul>
+    </div>
+  </div>
+</nav>

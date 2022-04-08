@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block title %} Current Mood {% endblock %}
+
+
+{% block content %}
+<div class="container-fluid p-5">
+    <div class="mt-5"></div>
+        <h1 class="text-center mt-5">What is your current mood?</h1>
+        <div class="row justify-content-center" id="moods">
+
+
+            {% for mood in moods %}
+            
+            <div class="col px-1">
+                <div class="card">
+                    <a href="?mood={{ mood }}" onclick="disableLinkAfterClick(this)">
+                        <img class="card-img-top" src="/images/moods/{{ mood }}.jpg" height="100" alt="{{ mood }}">
+                        <div class="card-body">
+                            <p class="card-text text-center text-body">{{ mood | capitalize }}</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            {% endfor %}
+
+        </div>
+</div>
+{% endblock %}
