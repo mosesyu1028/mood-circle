@@ -207,7 +207,9 @@ app.post('/dashboard',
         }
 
 
-        return res.send(checkAccount(username, password));
+        checkAccount(username, password, (authorized) => {
+            return res.send(authorized);
+        });
 
 
     
@@ -377,22 +379,22 @@ app.listen(port, () => {
 
 
 
-function checkAccount(username, password) {
+function checkAccount(username, password, callback) {
     con.query('SELECT * FROM users WHERE username = ?', [username], (err, result) => {
         if (err) throw err;
 
         if (result.length === 0) {
-            return false;
+            callback(false);
         }
+        
         else {
             pm.checkPassword(password, result[0].pass_hash)
                 .then(correctPw => {
                     if (correctPw) {
-
-                        return true;
+                        callback(true);
                     }
                     else {
-                        return false;
+                        callback(false);
                     }
                 })
         }
