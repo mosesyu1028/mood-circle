@@ -158,33 +158,54 @@ app.post('/login',
 );
 
 // CURRENT MOOD
-app.get('/select_mood', query('mood').trim().escape(), (req, res) => {
-    if (!req.session.loggedin) return res.redirect('/login?msg=protected');
+app.post('/select_mood', [
+        body('username').notEmpty().trim().escape(),
+        body('password').notEmpty().trim().escape(),
+        body('mood').notEmpty().trim().escape()
+    ],
+    (req, res) => {
 
-    mood = req.query.mood;
+        var username = req.body.username;
+        var password = req.body.password;
+        var mood = req.body.mood;
 
-    if (!allMoods.includes(mood)) {
-        return res.render("current_mood.html", {moods: allMoods, loggedin: true});
-    }
+        var errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            firstError = errors.array()[0];
+            return res.json({authorized: false});
+        }
 
-    
 
-    con.query('SELECT id FROM users WHERE username = ?', [req.session.username], (err, result) => {
-        if (err) throw err;
+        if (!allMoods.includes(mood)) {
+            return res.json({
+                authorized: true,
+                success: false,
+                alert: "invalidMood"
+            });
+        }
 
-        var user_id = result[0].id;
+        
 
-        con.query('INSERT INTO all_moods (mood, user_id) VALUES (?, ?)', [mood, user_id], (err, result) => {
+        con.query('SELECT id FROM users WHERE username = ?', [username], (err, result) => {
             if (err) throw err;
 
-            con.query('REPLACE INTO current_moods (mood, user_id) VALUES (?, ?)', [mood, user_id], (err, result) => {
+            var user_id = result[0].id;
 
-                return res.redirect('/dashboard');
-            });
-        }); 
-    });
+            con.query('INSERT INTO all_moods (mood, user_id) VALUES (?, ?)', [mood, user_id], (err, result) => {
+                if (err) throw err;
 
-});
+                con.query('REPLACE INTO current_moods (mood, user_id) VALUES (?, ?)', [mood, user_id], (err, result) => {
+
+                    return res.json({
+                        authorized: true,
+                        success: true
+                    });
+                });
+            }); 
+        });
+
+    }
+);
 
 // DASHBOARD
 app.post('/dashboard',
@@ -200,10 +221,7 @@ app.post('/dashboard',
         var errors = validationResult(req);
         if (!errors.isEmpty()) {
             firstError = errors.array()[0];
-            return res.json({
-                authSuccess: false,
-                alert: `${firstError.msg}: ${firstError.param}`
-            });
+            return res.json({authorized: false});
         }
 
 
