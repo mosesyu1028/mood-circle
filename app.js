@@ -28,7 +28,7 @@ nunjucks.configure('views', {
 const con = require('./database.js');
 const pm = require('./passwordManager.js');
 
-const moodReset = 15; // in minutes
+const MOOD_RESET = 15; // in minutes
 const allMoods = ["happy", "sad", "tired", "angry", "stressed"];
 
 // // HOMEPAGE (REDIRECT TERMINAL)
@@ -248,13 +248,11 @@ app.post('/dashboard',
 
                             var remindChange = false;
                             
-                            lastUpdated = new Date(currentMood.last_updated);
-                            console.log(lastUpdated)
-                            console.log(Date.now());
-                            console.log(Date.now() - lastUpdated);
-                            // if () {
-
-                            // }
+                            // Check if time elapsed since last updated is > mood reset
+                            console.log(Date.now() - new Date(currentMood.last_updated));
+                            if (Date.now() - lastUpdated > 1000 * 60 * MOOD_RESET) {
+                                remindChange = true;
+                            }
 
                             // get all friends' data 
                             con.query(`SELECT users.username, current_moods.mood, current_moods.last_updated FROM current_moods
