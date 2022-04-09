@@ -248,8 +248,10 @@ app.post('/dashboard',
 
                             var remindChange = false;
                             
-                            console.log(currentMood.last_updated.getDate())
-                            console.log(Date.now())
+                            lastUpdated = new Date(currentMood.last_updated);
+                            console.log(lastUpdated)
+                            console.log(Date.now());
+                            console.log(Date.now() - lastUpdated);
                             // if () {
 
                             // }
