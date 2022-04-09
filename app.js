@@ -31,30 +31,30 @@ const pm = require('./passwordManager.js');
 const moodReset = 15; // in minutes
 const allMoods = ["happy", "sad", "tired", "angry", "stressed"];
 
-// HOMEPAGE (REDIRECT TERMINAL)
-app.get('/', (req, res) => {
-    if (!req.session.loggedin) return res.redirect('/login?msg=protected');
+// // HOMEPAGE (REDIRECT TERMINAL)
+// app.get('/', (req, res) => {
+//     if (!req.session.loggedin) return res.redirect('/login?msg=protected');
     
-    con.query(`SELECT * FROM current_moods
-    WHERE last_updated > DATE_SUB(NOW(), INTERVAL ? MINUTE)
-    AND user_id IN (SELECT id FROM users WHERE username = ?)`, [moodReset, req.session.username], (err, result) => {
-        if (err) throw err;
+//     con.query(`SELECT * FROM current_moods
+//     WHERE last_updated > DATE_SUB(NOW(), INTERVAL ? MINUTE)
+//     AND user_id IN (SELECT id FROM users WHERE username = ?)`, [moodReset, req.session.username], (err, result) => {
+//         if (err) throw err;
 
-        if (result.length === 0) {
-            return res.redirect('/select_mood');
-        }
-        else {
-            return res.redirect('/dashboard');
-        }
+//         if (result.length === 0) {
+//             return res.redirect('/select_mood');
+//         }
+//         else {
+//             return res.redirect('/dashboard');
+//         }
 
-    })
-});
+//     })
+// });
 
 // SIGNUP
-app.get('/signup', (req, res) => {
-    req.session = null;
-    return res.render('signup.html');
-});
+// app.get('/signup', (req, res) => {
+//     req.session = null;
+//     return res.render('signup.html');
+// });
 
 app.post('/signup',
     [
@@ -247,7 +247,7 @@ app.get('/dashboard', query('msg').trim().escape(), (req, res) => {
                     if (err) throw err;
 
                     var friendMoods = result;
-                    return res.json("dashboard.html", {pendingRequests: pendingRequests, errorMessage: errorMessage, currentMood: currentMood, friendMoods: friendMoods, loggedin: true});
+                    return res.json({pendingRequests: pendingRequests, errorMessage: errorMessage, currentMood: currentMood, friendMoods: friendMoods});
                 });
             });
             
