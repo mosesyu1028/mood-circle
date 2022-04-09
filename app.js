@@ -50,12 +50,6 @@ const allMoods = ["happy", "sad", "tired", "angry", "stressed"];
 //     })
 // });
 
-// SIGNUP
-// app.get('/signup', (req, res) => {
-//     req.session = null;
-//     return res.render('signup.html');
-// });
-
 app.post('/signup',
     [
         body('username').notEmpty().trim().escape(),
@@ -111,19 +105,6 @@ app.post('/signup',
     }
 );
 
-// LOGIN
-// app.get('/login', query('msg').trim().escape(), (req, res) => {
-//     req.session = null;
-    
-//     var msg = req.query.msg;
-//     var errorMessage = "";
-
-//     if (msg === "protected") {
-//         errorMessage = "Please login first!";
-//     }
-
-//     return res.render('login.html', {errorMessage: errorMessage});
-// });
 
 app.post('/login',
     [
@@ -151,7 +132,7 @@ app.post('/login',
             if (result.length === 0) {
                 return res.json({
                     authSuccess: false,
-                    alert: "Account doesn't exist"
+                    alert: "noUser"
                 });
             }
             else {
@@ -166,7 +147,7 @@ app.post('/login',
                         else {
                             return res.json({
                                 authSuccess: false,
-                                alert: "Incorrect password"
+                                alert: "wrongPassword"
                             });
                         }
                     })
