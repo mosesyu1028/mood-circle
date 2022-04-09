@@ -139,26 +139,35 @@ app.post('/login',
         var errors = validationResult(req);
         if (!errors.isEmpty()) {
             firstError = errors.array()[0];
-            return res.render('login.html', {errorMessage: `${firstError.msg}: ${firstError.param}`});
+            return res.json({
+                authSuccess: false,
+                alert: `${firstError.msg}: ${firstError.param}`
+            });
         }
 
         con.query('SELECT * FROM users WHERE username = ?', [username], (err, result) => {
             if (err) throw err;
     
             if (result.length === 0) {
-                return res.render('login.html', {errorMessage: "Account doesn't exist"});
+                return res.json({
+                    authSuccess: false,
+                    alert: "Account doesn't exist"
+                });
             }
             else {
                 pm.checkPassword(password, result[0].pass_hash)
                     .then(correctPw => {
                         if (correctPw) {
-                            req.session.loggedin = true;
-                            req.session.username = username;
 
-                            return res.redirect('/');
+                            return res.json({
+                                authSuccess: true
+                            });
                         }
                         else {
-                            return res.render('login.html', {errorMessage: "Incorrect password"});
+                            return res.json({
+                                authSuccess: false,
+                                alert: "Incorrect password"
+                            });
                         }
                     })
             }
