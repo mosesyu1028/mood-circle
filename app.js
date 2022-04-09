@@ -246,6 +246,14 @@ app.post('/dashboard',
 
                             var currentMood = result[0];
 
+                            var remindChange = false;
+                            
+                            console.log(currentMood.last_updated.getDate())
+                            console.log(Date.now())
+                            // if () {
+
+                            // }
+
                             // get all friends' data 
                             con.query(`SELECT users.username, current_moods.mood, current_moods.last_updated FROM current_moods
                             INNER JOIN users ON current_moods.user_id = users.id
@@ -260,7 +268,8 @@ app.post('/dashboard',
                                     authorized: true,
                                     pendingRequests: pendingRequests,
                                     currentMood: currentMood,
-                                    friendMoods: friendMoods
+                                    friendMoods: friendMoods,
+                                    remindChange: remindChange
                                 });
                             });
                         });
