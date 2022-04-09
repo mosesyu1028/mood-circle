@@ -115,7 +115,6 @@ app.post('/login',
 
         var username = req.body.username;
         var password = req.body.password;
-        // var remember = !!(req.body.remember); // force boolean
 
         var errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -125,6 +124,7 @@ app.post('/login',
                 alert: `${firstError.msg}: ${firstError.param}`
             });
         }
+
 
         con.query('SELECT * FROM users WHERE username = ?', [username], (err, result) => {
             if (err) throw err;
@@ -157,12 +157,6 @@ app.post('/login',
     }
 );
 
-// LOGOUT
-app.get('/logout', (req, res) => {
-    req.session = null;
-    return res.redirect('/login');
-});
-
 // CURRENT MOOD
 app.get('/select_mood', query('mood').trim().escape(), (req, res) => {
     if (!req.session.loggedin) return res.redirect('/login?msg=protected');
@@ -193,58 +187,66 @@ app.get('/select_mood', query('mood').trim().escape(), (req, res) => {
 });
 
 // DASHBOARD
-app.get('/dashboard', query('msg').trim().escape(), (req, res) => {
-    if (!req.session.loggedin) return res.redirect('/login?msg=protected');
+app.post('/dashboard',
+    [
+        body('username').notEmpty().trim().escape(),
+        body('password').notEmpty().trim().escape(),
+    ],
+    (req, res) => {
 
-    var msg = req.query.msg;
-    var errorMessage = "";
+        var username = req.body.username;
+        var password = req.body.password;
 
-    switch (msg) {
-        case "nopending":
-            errorMessage = "Couldn't find pending friend request!";
-            break;
-        case "accepted":
-            errorMessage = "Accepted friend request!";
-            break;
-        case "declined":
-            errorMessage = "Declined friend request!";
-            break;
-    }
+        var errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            firstError = errors.array()[0];
+            return res.json({
+                authSuccess: false,
+                alert: `${firstError.msg}: ${firstError.param}`
+            });
+        }
 
-    var friendIds = [];
-    var pendingRequests;
 
-    con.query('SELECT id FROM users WHERE username = ?', [req.session.username], (err, result) => {
-        if (err) throw err;
+        return res.send(checkAccount(username, password));
 
-        var user_id = result[0].id;
 
-        con.query('SELECT username FROM users WHERE id IN (SELECT requester_id FROM pending_friendships WHERE requestee_id = ?)', [user_id], async (err, result) => {
+    
+
+        var pendingRequests;
+
+        con.query('SELECT id FROM users WHERE username = ?', [req.session.username], (err, result) => {
             if (err) throw err;
 
-            pendingRequests = result;
+            var user_id = result[0].id;
 
-            con.query("SELECT mood, last_updated FROM current_moods WHERE user_id IN (SELECT id FROM users WHERE username = ?)", [req.session.username], (err, result) => {
+            con.query('SELECT username FROM users WHERE id IN (SELECT requester_id FROM pending_friendships WHERE requestee_id = ?)', [user_id], async (err, result) => {
                 if (err) throw err;
 
-                var currentMood = result[0];
+                pendingRequests = result;
 
-                con.query(`SELECT users.username, current_moods.mood, current_moods.last_updated FROM current_moods
-                INNER JOIN users ON current_moods.user_id = users.id
-                WHERE current_moods.user_id IN ((SELECT user2_id AS friend_id FROM friendships WHERE user1_id = ?) UNION
-                (SELECT user1_id FROM friendships WHERE user2_id = ?))
-                ORDER BY current_moods.last_updated DESC`, [user_id, user_id], (err, result) => {
+                con.query("SELECT mood, last_updated FROM current_moods WHERE user_id IN (SELECT id FROM users WHERE username = ?)", [req.session.username], (err, result) => {
                     if (err) throw err;
 
-                    var friendMoods = result;
-                    return res.json({pendingRequests: pendingRequests, errorMessage: errorMessage, currentMood: currentMood, friendMoods: friendMoods});
-                });
-            });
-            
-        });
-    });
+                    var currentMood = result[0];
 
-});
+                    // get all friends' data 
+                    con.query(`SELECT users.username, current_moods.mood, current_moods.last_updated FROM current_moods
+                    INNER JOIN users ON current_moods.user_id = users.id
+                    WHERE current_moods.user_id IN ((SELECT user2_id AS friend_id FROM friendships WHERE user1_id = ?) UNION
+                    (SELECT user1_id FROM friendships WHERE user2_id = ?))
+                    ORDER BY current_moods.last_updated DESC`, [user_id, user_id], (err, result) => {
+                        if (err) throw err;
+
+                        var friendMoods = result;
+                        return res.json({pendingRequests: pendingRequests, errorMessage: errorMessage, currentMood: currentMood, friendMoods: friendMoods});
+                    });
+                });
+                
+            });
+        });
+
+    }
+);
 
 app.get('/profile', (req, res) => {
     if (!req.session.loggedin) return res.redirect('/login?msg=protected');
@@ -365,3 +367,34 @@ app.get('/accept_friend', [
 app.listen(port, () => {
     console.log("App listening on port " + port);
 });
+
+
+
+
+
+
+
+
+
+
+function checkAccount(username, password) {
+    con.query('SELECT * FROM users WHERE username = ?', [username], (err, result) => {
+        if (err) throw err;
+
+        if (result.length === 0) {
+            return false;
+        }
+        else {
+            pm.checkPassword(password, result[0].pass_hash)
+                .then(correctPw => {
+                    if (correctPw) {
+
+                        return true;
+                    }
+                    else {
+                        return false;
+                    }
+                })
+        }
+    });
+}
