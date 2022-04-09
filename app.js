@@ -208,44 +208,53 @@ app.post('/dashboard',
 
 
         checkAccount(username, password, (authorized) => {
-            return res.send(authorized);
-        });
+            if (!authorized) {
+                return res.json({authorized: false});
+            }
+            else {
 
+                con.query('SELECT id FROM users WHERE username = ?', [username], (err, result) => {
+                    if (err) throw err;
+
+                    var user_id = result[0].id;
+
+                    con.query('SELECT username FROM users WHERE id IN (SELECT requester_id FROM pending_friendships WHERE requestee_id = ?)', [user_id], async (err, result) => {
+                        if (err) throw err;
+
+                        var pendingRequests = result;
+
+                        con.query("SELECT mood, last_updated FROM current_moods WHERE user_id IN (SELECT id FROM users WHERE username = ?)", [username], (err, result) => {
+                            if (err) throw err;
+
+                            var currentMood = result[0];
+
+                            // get all friends' data 
+                            con.query(`SELECT users.username, current_moods.mood, current_moods.last_updated FROM current_moods
+                            INNER JOIN users ON current_moods.user_id = users.id
+                            WHERE current_moods.user_id IN ((SELECT user2_id AS friend_id FROM friendships WHERE user1_id = ?) UNION
+                            (SELECT user1_id FROM friendships WHERE user2_id = ?))
+                            ORDER BY current_moods.last_updated DESC`, [user_id, user_id], (err, result) => {
+                                if (err) throw err;
+
+                                var friendMoods = result;
+
+                                return res.json({
+                                    authorized: true,
+                                    pendingRequests: pendingRequests,
+                                    currentMood: currentMood,
+                                    friendMoods: friendMoods
+                                });
+                            });
+                        });
+                        
+                    });
+                });
+            }
+        });
 
     
 
-        // var pendingRequests;
-
-        // con.query('SELECT id FROM users WHERE username = ?', [req.session.username], (err, result) => {
-        //     if (err) throw err;
-
-        //     var user_id = result[0].id;
-
-        //     con.query('SELECT username FROM users WHERE id IN (SELECT requester_id FROM pending_friendships WHERE requestee_id = ?)', [user_id], async (err, result) => {
-        //         if (err) throw err;
-
-        //         pendingRequests = result;
-
-        //         con.query("SELECT mood, last_updated FROM current_moods WHERE user_id IN (SELECT id FROM users WHERE username = ?)", [req.session.username], (err, result) => {
-        //             if (err) throw err;
-
-        //             var currentMood = result[0];
-
-        //             // get all friends' data 
-        //             con.query(`SELECT users.username, current_moods.mood, current_moods.last_updated FROM current_moods
-        //             INNER JOIN users ON current_moods.user_id = users.id
-        //             WHERE current_moods.user_id IN ((SELECT user2_id AS friend_id FROM friendships WHERE user1_id = ?) UNION
-        //             (SELECT user1_id FROM friendships WHERE user2_id = ?))
-        //             ORDER BY current_moods.last_updated DESC`, [user_id, user_id], (err, result) => {
-        //                 if (err) throw err;
-
-        //                 var friendMoods = result;
-        //                 return res.json({pendingRequests: pendingRequests, errorMessage: errorMessage, currentMood: currentMood, friendMoods: friendMoods});
-        //             });
-        //         });
-                
-        //     });
-        // });
+        
 
     }
 );
