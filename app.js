@@ -423,7 +423,7 @@ app.post('/accept_friend',
         var username = req.body.username;
         var password = req.body.password;
         var frienduser = req.body.frienduser;
-        var accept = (req.query.accept === "true");
+        var accept = (req.body.accept === "true");
         
 
         var errors = validationResult(req);
