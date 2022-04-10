@@ -366,10 +366,13 @@ app.post('/add_friend',
                             });
                         }
         
-                        con.query(`(SELECT user2_id AS friend_id FROM friendships WHERE user1_id = ?) UNION
-                        (SELECT user1_id FROM friendships WHERE user2_id = ?)`, [user_id, user_id], (err, result) => {
+                        // con.query(`(SELECT user2_id AS friend_id FROM friendships WHERE user1_id = ?) UNION
+                        // (SELECT user1_id FROM friendships WHERE user2_id = ?)`, [user_id, user_id], (err, result) => {
+                        con.query(`SELECT * FROM friendships WHERE
+                        (user1_id = ? AND user2_id = ?)
+                        OR (user2_id = ? AND user1_id = ?)`, [user_id, friend_id, user_id, friend_id], (err, result) => {
                             if (err) throw err;
-        
+                            
                             if (result.length > 0) {
                                 return res.json({
                                     authorized: true,
@@ -401,7 +404,7 @@ app.post('/add_friend',
                         });
                     });
                 });
-                
+
             }
         });
 
