@@ -312,7 +312,7 @@ app.post('/add_friend',
     [
         body('username').notEmpty().trim().escape(),
         body('password').notEmpty().trim().escape(),
-        body('frienduser').notEmpty().trim().escape(),
+        body('frienduser').trim().escape(),
     ],
     (req, res) => {
     
@@ -333,6 +333,8 @@ app.post('/add_friend',
             else {
             }
         });
+
+        console.log(frienduser);
 
         con.query('SELECT id FROM users WHERE username = ?', [username], (err, result) => {
             if (err) throw err;
