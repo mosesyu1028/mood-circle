@@ -31,24 +31,6 @@ const pm = require('./passwordManager.js');
 const MOOD_RESET = 15; // in minutes
 const allMoods = ["happy", "sad", "tired", "angry", "stressed"];
 
-// // HOMEPAGE (REDIRECT TERMINAL)
-// app.get('/', (req, res) => {
-//     if (!req.session.loggedin) return res.redirect('/login?msg=protected');
-    
-//     con.query(`SELECT * FROM current_moods
-//     WHERE last_updated > DATE_SUB(NOW(), INTERVAL ? MINUTE)
-//     AND user_id IN (SELECT id FROM users WHERE username = ?)`, [moodReset, req.session.username], (err, result) => {
-//         if (err) throw err;
-
-//         if (result.length === 0) {
-//             return res.redirect('/select_mood');
-//         }
-//         else {
-//             return res.redirect('/dashboard');
-//         }
-
-//     })
-// });
 
 app.post('/signup',
     [
@@ -301,9 +283,6 @@ app.post('/dashboard',
             }
         });
 
-    
-
-        
 
     }
 );
@@ -446,7 +425,7 @@ app.post('/accept_friend',
                     });
                 }
 
-                con.query('SELECT * FROM pending_friendships WHERE requestee_id = (SELECT id FROM users WHERE username = ?) AND requester_id IN (SELECT id FROM users WHERE username = ?)', [req.session.username, frienduser], (err, result) => {
+                con.query('SELECT * FROM pending_friendships WHERE requestee_id = (SELECT id FROM users WHERE username = ?) AND requester_id IN (SELECT id FROM users WHERE username = ?)', [username, frienduser], (err, result) => {
                     if (err) throw err;
 
                     if (result.length === 0) {
