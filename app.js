@@ -334,7 +334,8 @@ app.post('/add_friend',
             }
         });
 
-        console.log(frienduser);
+        console.log(typeof frienduser);
+        console.log(frienduser === "");
 
         con.query('SELECT id FROM users WHERE username = ?', [username], (err, result) => {
             if (err) throw err;
