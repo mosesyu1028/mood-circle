@@ -411,7 +411,7 @@ app.post('/add_friend',
     }
 );
 
-app.get('/accept_friend',
+app.post('/accept_friend',
     [
         body('username').notEmpty().trim().escape(),
         body('password').notEmpty().trim().escape(),
