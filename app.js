@@ -81,14 +81,20 @@ app.post('/signup',
             return res.render('signup.html', {errorMessage: "Length must be between 6 and 50: password"});
         }
         else if (password !== confirm) {
-            return res.render('signup.html', {errorMessage: "Passwords must match"});
+            return res.json({
+                signupSuccess: false,
+                alert: "wrongConfirm"
+            });
         }
 
         con.query('SELECT * FROM users WHERE username = ?', [username], (err, result) => {
             if (err) throw err;
     
             if (result.length > 0) {
-                return res.render('signup.html', {errorMessage: "Username already exists"});
+                return res.json({
+                    signupSuccess: false,
+                    alert: "userExists"
+                });
             }
         });
 
@@ -97,7 +103,7 @@ app.post('/signup',
                 con.query('INSERT INTO users (username, pass_hash) VALUES (?, ?)', [username, pass_hash], (err, result) => {
                     if (err) throw err;
 
-                    return res.redirect('/login');
+                    return res.json({signupSuccess: true});
                 });
             });
 
