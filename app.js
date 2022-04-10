@@ -331,78 +331,80 @@ app.post('/add_friend',
                 return res.json({authorized: false});
             }
             else {
-            }
-        });
 
-        if (frienduser === "") {
-            return res.json({
-                authorized: true,
-                added: false,
-                alert: "noName"
-            });
-        }
-
-        con.query('SELECT id FROM users WHERE username = ?', [username], (err, result) => {
-            if (err) throw err;
-
-            var user_id = result[0].id;
-
-            con.query('SELECT id FROM users WHERE username = ?', [frienduser], (err, result) => {
-                if (err) throw err;
-
-                if (result.length === 0) {
+                if (frienduser === "") {
                     return res.json({
                         authorized: true,
                         added: false,
-                        alert: "noUser"
+                        alert: "noName"
                     });
                 }
-
-                var friend_id = result[0].id;
-
-                if (friend_id === user_id) {
-                    return res.json({
-                        authorized: true,
-                        added: false,
-                        alert: "selfAdd"
-                    });
-                }
-
-                con.query(`(SELECT user2_id AS friend_id FROM friendships WHERE user1_id = ?) UNION
-                (SELECT user1_id FROM friendships WHERE user2_id = ?)`, [user_id, user_id], (err, result) => {
+        
+                con.query('SELECT id FROM users WHERE username = ?', [username], (err, result) => {
                     if (err) throw err;
-
-                    if (result.length > 0) {
-                        return res.json({
-                            authorized: true,
-                            added: false,
-                            alert: "alreadyFriends"
-                        });
-                    }
-
-                    con.query('SELECT * FROM pending_friendships WHERE requestee_id = ? AND requester_id = ?', [friend_id, user_id], (err, result) => {
+        
+                    var user_id = result[0].id;
+        
+                    con.query('SELECT id FROM users WHERE username = ?', [frienduser], (err, result) => {
                         if (err) throw err;
         
-                        if (result.length > 0) {
+                        if (result.length === 0) {
                             return res.json({
                                 authorized: true,
                                 added: false,
-                                alert: "alreadyAdding"
+                                alert: "noUser"
                             });
                         }
         
-                        con.query('INSERT INTO pending_friendships (requestee_id, requester_id) VALUES (?, ?)', [friend_id, user_id], (err, result) => {
-                            if (err) throw err;
-            
+                        var friend_id = result[0].id;
+        
+                        if (friend_id === user_id) {
                             return res.json({
                                 authorized: true,
-                                added: true
+                                added: false,
+                                alert: "selfAdd"
+                            });
+                        }
+        
+                        con.query(`(SELECT user2_id AS friend_id FROM friendships WHERE user1_id = ?) UNION
+                        (SELECT user1_id FROM friendships WHERE user2_id = ?)`, [user_id, user_id], (err, result) => {
+                            if (err) throw err;
+        
+                            if (result.length > 0) {
+                                return res.json({
+                                    authorized: true,
+                                    added: false,
+                                    alert: "alreadyFriends"
+                                });
+                            }
+        
+                            con.query('SELECT * FROM pending_friendships WHERE requestee_id = ? AND requester_id = ?', [friend_id, user_id], (err, result) => {
+                                if (err) throw err;
+                
+                                if (result.length > 0) {
+                                    return res.json({
+                                        authorized: true,
+                                        added: false,
+                                        alert: "alreadyAdding"
+                                    });
+                                }
+                
+                                con.query('INSERT INTO pending_friendships (requestee_id, requester_id) VALUES (?, ?)', [friend_id, user_id], (err, result) => {
+                                    if (err) throw err;
+                    
+                                    return res.json({
+                                        authorized: true,
+                                        added: true
+                                    });
+                                });
                             });
                         });
                     });
                 });
-            });
+                
+            }
         });
+
     }
 );
 
