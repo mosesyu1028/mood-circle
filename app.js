@@ -312,7 +312,7 @@ app.post('/add_friend',
     [
         body('username').notEmpty().trim().escape(),
         body('password').notEmpty().trim().escape(),
-        body('frienduser').trim().escape(),
+        body('frienduser').trim().escape(), // check for empty later so it doesn't mix with the auth vali
     ],
     (req, res) => {
     
@@ -334,8 +334,13 @@ app.post('/add_friend',
             }
         });
 
-        console.log(typeof frienduser);
-        console.log(frienduser === "");
+        if (frienduser === "") {
+            return res.json({
+                authorized: true,
+                added: false,
+                alert: "noName"
+            });
+        }
 
         con.query('SELECT id FROM users WHERE username = ?', [username], (err, result) => {
             if (err) throw err;
