@@ -372,7 +372,7 @@ app.post('/add_friend',
                         (user1_id = ? AND user2_id = ?)
                         OR (user2_id = ? AND user1_id = ?)`, [user_id, friend_id, user_id, friend_id], (err, result) => {
                             if (err) throw err;
-                            
+
                             if (result.length > 0) {
                                 return res.json({
                                     authorized: true,
@@ -411,50 +411,83 @@ app.post('/add_friend',
     }
 );
 
-app.get('/accept_friend', [
-        query('accept').isBoolean(),
-        query('frienduser').notEmpty().trim().escape()
-    ], (req, res) => {
-        if (!req.session.loggedin) return res.redirect('/login?msg=protected');
+app.get('/accept_friend',
+    [
+        body('username').notEmpty().trim().escape(),
+        body('password').notEmpty().trim().escape(),
+        body('frienduser').trim().escape(),
+        body('accept').isBoolean()
+    ],
+    (req, res) => {
 
+        var username = req.body.username;
+        var password = req.body.password;
+        var frienduser = req.body.frienduser;
         var accept = (req.query.accept === "true");
-        var frienduser = req.query.frienduser;
+        
 
         var errors = validationResult(req);
         if (!errors.isEmpty()) {
             firstError = errors.array()[0];
-            return res.redirect('/dashboard');
+            return res.json({authorized: false});
         }
 
-        con.query('SELECT * FROM pending_friendships WHERE requestee_id = (SELECT id FROM users WHERE username = ?) AND requester_id IN (SELECT id FROM users WHERE username = ?)', [req.session.username, frienduser], (err, result) => {
-            if (err) throw err;
-
-            if (result.length === 0) {
-                return res.redirect("/dashboard?msg=nopending");
+        checkAccount(username, password, (authorized) => {
+            if (!authorized) {
+                return res.json({authorized: false});
             }
+            else {
 
-            con.query(`DELETE FROM pending_friendships WHERE
-            (requestee_id = (SELECT id FROM users WHERE username = ?) AND requester_id IN (SELECT id FROM users WHERE username = ?)) OR
-            (requestee_id = (SELECT id FROM users WHERE username = ?) AND requester_id IN (SELECT id FROM users WHERE username = ?))`,
-            [req.session.username, frienduser, frienduser, req.session.username], (err, result) => {
-                if (err) throw err;
-
-                if (accept) {
-                    con.query("INSERT INTO friendships (user1_id, user2_id) VALUES ((SELECT id FROM users WHERE username = ?), (SELECT id FROM users WHERE username = ?))",
-                    [req.session.username, frienduser, frienduser, req.session.username], (err, result) => {
-                        if (err) throw err;
-
-                        return res.redirect('/dashboard?msg=accepted');
+                if (frienduser === "") {
+                    return res.json({
+                        authorized: true,
+                        actionSuccess: false,
+                        alert: "noFriendUser"
                     });
                 }
-                else {
-                    return res.redirect('/dashboard?msg=declined');
-                }
-                
-            });
-            
+
+                con.query('SELECT * FROM pending_friendships WHERE requestee_id = (SELECT id FROM users WHERE username = ?) AND requester_id IN (SELECT id FROM users WHERE username = ?)', [req.session.username, frienduser], (err, result) => {
+                    if (err) throw err;
+
+                    if (result.length === 0) {
+                        return res.json({
+                            authorized: true,
+                            actionSuccess: false,
+                            alert: "noPending"
+                        });
+                    }
+
+                    con.query(`DELETE FROM pending_friendships WHERE
+                    (requestee_id = (SELECT id FROM users WHERE username = ?) AND requester_id IN (SELECT id FROM users WHERE username = ?)) OR
+                    (requestee_id = (SELECT id FROM users WHERE username = ?) AND requester_id IN (SELECT id FROM users WHERE username = ?))`,
+                    [username, frienduser, frienduser, username], (err, result) => {
+                        if (err) throw err;
+
+                        if (accept) {
+                            con.query("INSERT INTO friendships (user1_id, user2_id) VALUES ((SELECT id FROM users WHERE username = ?), (SELECT id FROM users WHERE username = ?))",
+                            [username, frienduser], (err, result) => {
+                                if (err) throw err;
+
+                                return res.json({
+                                    authorized: true,
+                                    actionSuccess: true
+                                });
+                            });
+                        }
+                        else {
+                            return res.json({
+                                authorized: true,
+                                actionSuccess: true
+                            });
+                        }
+                        
+                    });
+                    
+                });
+            }
         });
-});
+    }
+);
 
 
 app.listen(port, () => {
