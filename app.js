@@ -65,20 +65,32 @@ app.post('/signup',
         var errors = validationResult(req);
         if (!errors.isEmpty()) {
             firstError = errors.array()[0];
-            return res.render('signup.html', {errorMessage: `${firstError.msg}: ${firstError.param}`});
+            return res.json({
+                signupSuccess: false,
+                alert: `${firstError.msg}: ${firstError.param}`
+            });
         }
 
 
         // Check credentials
         if (username.length < 3 || username.length > 24) {
-            return res.render('signup.html', {errorMessage: "Length must be between 3 and 24: username"});
+            return res.json({
+                signupSuccess: false,
+                alert: "userLen"
+            });
         }
 
         else if (username.search(/^[a-zA-Z0-9-_]+$/) === -1) {
-            return res.render('signup.html', {errorMessage: "Only letters, numbers, hyphen, and underscore allowed: username"});
+            return res.json({
+                signupSuccess: false,
+                alert: "userChars"
+            });
         }
         else if (password.length < 6 || password.length > 50) {
-            return res.render('signup.html', {errorMessage: "Length must be between 6 and 50: password"});
+            return res.json({
+                signupSuccess: false,
+                alert: "passwordLen"
+            });
         }
         else if (password !== confirm) {
             return res.json({
