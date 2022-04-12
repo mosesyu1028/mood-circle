@@ -31,6 +31,9 @@ const pm = require('./passwordManager.js');
 const MOOD_RESET = 15; // in minutes
 const allMoods = ["happy", "sad", "tired", "angry", "stressed"];
 
+app.get('/', (req, res) => {
+    return res.send("pong");
+});
 
 app.post('/signup',
     [
