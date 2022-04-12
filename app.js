@@ -252,9 +252,10 @@ app.post('/dashboard',
 
                             var currentMood = result[0];
 
-                            // Check if time elapsed since last updated is > mood reset
+                            // Check if time elapsed since last updated is > mood reset OR if user is new
                             var remindChange = false;
-                            if (Date.now() - new Date(currentMood.last_updated) > 1000 * 60 * MOOD_RESET) {
+                            
+                            if (currentMood == undefined || Date.now() - new Date(currentMood.last_updated) > 1000 * 60 * MOOD_RESET) {
                                 remindChange = true;
                             }
 
