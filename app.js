@@ -262,7 +262,8 @@ app.post('/dashboard',
                             // get all friends' data 
                             con.query(`SELECT users.username, current_moods.mood, current_moods.last_updated FROM current_moods
                             INNER JOIN users ON current_moods.user_id = users.id
-                            WHERE current_moods.user_id IN ((SELECT user2_id AS friend_id FROM friendships WHERE user1_id = ?) UNION
+                            WHERE current_moods.user_id IN
+                            ((SELECT user2_id FROM friendships WHERE user1_id = ?) UNION
                             (SELECT user1_id FROM friendships WHERE user2_id = ?))
                             ORDER BY current_moods.last_updated DESC`, [user_id, user_id], (err, result) => {
                                 if (err) throw err;
